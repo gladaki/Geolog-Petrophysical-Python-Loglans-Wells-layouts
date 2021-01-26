@@ -1,5 +1,5 @@
 # Geolog Python loglan, layouts, data and wells examples
-The objective of this project is to present a variety of Geolog loglans that have been written in python to demonstrate the capabilities of Geolog python loglan where all well data is being sourced from a Geolog well. 
+The objective of this project is to present a variety of Geolog loglans that have been written in python to demonstrate the capabilities of Geolog python loglan where all well data is being sourced from Geolog wells. 
 
 
 ## At this time there are four (4) different projects
