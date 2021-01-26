@@ -40,7 +40,7 @@ The top and bottom interval depths are input as constants and then Geolog loads 
 ## Time Series Production Data from field
 The objective of this project is to interactively interrogate oil field production data using Altair. We want to interactively interrogate and visualize the well-by-well production data from various Fields using python Altair written into a Geolog python loglan. Altair has great potential allowing us to dynamically link our data. 
 
-![Altair_Image3](geolog-production.png)
+![Altair_Image3](geolog_production.png)
 
 We normally do this type of work in Spotfire where we always prefer to tie our petrophysical results into the actual production and pressures from a field-wide perspective. 
 
