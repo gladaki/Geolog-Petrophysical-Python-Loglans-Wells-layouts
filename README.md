@@ -78,12 +78,20 @@ We use kNN to estimate Thomeer parameters and Capillary Pressure curves from Por
 
 ![Altair_Image5](thomeer.png)
 
-The following is an example of how we select a point in poro-perm space and estimate the Thomeer parameters and Pc curves based on these inputs.
+The following is a single example of how we select a point in poro-perm space and estimate the Thomeer parameters and Pc curves based on these inputs. In our program above we actually perform these estimations for Thomeer parameters and Pc curves for the entire well.
 
 ![Pc_curves](kNN_estimated_Pc_RosettaStone.gif)
 
 
 
+## Capillary Pressure Curves are Calculated from the Thomeer parameters and Capillary Pressure based saturations are calculated above the estimated Free Water Level (FWL) elevation. 
+In this module we calculate Capillary Pressure Curves from the above derived Thomeer parameters and Capillary Pressure based saturations are then calculated above the FWL.
+
+![pc_sats](pc_sats.png)
+
+The following is the simple code used to make this initial saturation calculations. In the final version we will use upscaled Pc curve data
+
+![pc_sats_code](pc_sats_code.png)
 
 
 
