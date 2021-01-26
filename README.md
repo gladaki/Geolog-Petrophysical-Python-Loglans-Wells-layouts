@@ -37,7 +37,7 @@ The objective of this project is to interactively interrogate oil field producti
 
 We normally do this type of work in Spotfire where we always prefer to tie our petrophysical results into the actual production and pressures from a field-wide perspective. 
 
-![production](attachment:Volve_production.gif)
+![production](Volve_production.gif)
 
 ## Altair used to Interrogate Capillary Pressure data
 The objective of this project is to interrogate Petrophysical core data using python's interactive Altair. This program is also available with Geolog python loglan that are included in this repository. 
@@ -53,11 +53,11 @@ High Pressure Mercury Injection (HPMI) was performed on each of the core plug sa
 1) Clerke, E. A., Mueller III, H. W., Phillips, E. C., Eyvazzadeh, R. Y., Jones, D. H., Ramamoorthy, R., Srivastava, A., (2008) “Application of Thomeer Hyperbolas to decode the pore systems, facies and reservoir properties of the Upper Jurassic Arab D Limestone, Ghawar field, Saudi Arabia: A Rosetta Stone approach”, GeoArabia, Vol. 13, No. 4, p. 113-160, October, 2008. 
 
 
-![Pc](attachment:geolog_altair_Thomeer.gif)
+![Pc](geolog_altair_Thomeer.gif)
 
 ## kNN used to Predict Thomeer Capillary Pressure parameters and generate Capillary Pressure Curves
 
-![Pc_curves](attachment:kNN_estimated_Pc_RosettaStone.gif)
+![Pc_curves](kNN_estimated_Pc_RosettaStone.gif)
 
 
 
