@@ -53,7 +53,7 @@ High Pressure Mercury Injection (HPMI) was performed on each of the core plug sa
 1) Clerke, E. A., Mueller III, H. W., Phillips, E. C., Eyvazzadeh, R. Y., Jones, D. H., Ramamoorthy, R., Srivastava, A., (2008) “Application of Thomeer Hyperbolas to decode the pore systems, facies and reservoir properties of the Upper Jurassic Arab D Limestone, Ghawar field, Saudi Arabia: A Rosetta Stone approach”, GeoArabia, Vol. 13, No. 4, p. 113-160, October, 2008. 
 
 
-![Pc](geolog_altair_Thomeer.gif)
+![Pc](geolog_altair_thomeer.gif)
 
 ## kNN used to Predict Thomeer Capillary Pressure parameters and generate Capillary Pressure Curves
 
