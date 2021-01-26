@@ -1,0 +1,641 @@
+#!/usr/bin/env python3
+# python loglan
+
+# Imports
+import geolog
+import numpy as np
+import math
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from matplotlib import gridspec   
+
+
+
+# Load data from geolog
+while geolog.gettable():
+
+    data = pd.DataFrame({'depth':depth,'cali':cali,'gr':gr,'sp':sp,'nphi':nphi,'dt':dt,'rhob':rhob,'rt':rt, \
+        'ilm':ilm, 'rmll':rmll, 'phix':phix, 'mphi':mphi, 'mbvi':mbvi, 'mna':mna, 'vsh_gr':vsh_gr, 
+        'phit':phit , 'phie':phie, 'vsh':vsh,'cbw':cbw, 'swb':swb ,'mstar':mstar, 'swt_c':swt_c, 'swt_i':swt_i, \
+        'swdw':swdw ,'bvwe':bvwe , 'vsh_neut':vsh_neut     })
+    
+    data.head()
+    
+    
+    data=data.rename(columns=({'depth':'DEPT'}))
+    data['DEPT']=data.index
+        
+    
+    """
+    ===============================================================================
+                        Major Zones of Interest
+    ===============================================================================
+    ===============================================================================
+     a Main ZONE for analysis will be selected from the entire log. Program displays
+     the logs again within the choosen interval with triple_combo_plot
+     function.
+     
+     === Select zone of analysis: top and depth
+     
+     by setting the ``top_depth'' and ``bottom_depth'' variables
+    ===============================================================================
+    """
+    top_depth    = 4500
+    bottom_depth = 4750
+    logs=data[(data.DEPT >= top_depth) & (data.DEPT <= bottom_depth)]
+
+    
+    """
+    ===============================================================================
+        Summary or Primary Zone of interest depths are required here
+    ===============================================================================
+    """
+    top_summary    = 4500
+    bottom_summary = 4750
+    
+    
+    """
+    ===============================================================================
+        Add formation tops & depths 
+     
+    ===============================================================================
+    """
+    
+    tops = ('TOP of ZONE','BOTTOM of ZONE','TD')
+    tops_depths=(4500,4750,5000)
+    
+    """
+    ===============================================================================
+        Display the logs in Triple Combo Plot
+     
+     A triple-combo display will be created in matplotlib in order to
+     visualize the curves. The template will be incorporated into the triple
+     combo_plot function dependent on the selection of top and bottom depths
+     of the graph.
+     
+     The triple combo display will consist in: - First track: GR, SP, CALI -
+     Second track: Resistivities - Third Track: Density, Sonic and Neutronic
+     
+     In the next code lines, we will set the template.
+    ===============================================================================
+    """
+    # Create the TRIPLE COMBO figure and subplots
+    def triple_combo_plot(top_depth,bottom_depth):
+        
+        logs=data[(data.DEPT >= top_depth) & (data.DEPT <= bottom_depth)]
+        fig, ax = plt.subplots(nrows=1, ncols=4, figsize=(12,16), sharey=True)
+        fig.suptitle("Well Composite", fontsize=22)
+        fig.subplots_adjust(top=0.75,wspace=0.1)
+    
+        #General setting for all axis
+        for axes in ax:
+            axes.set_ylim (top_depth,bottom_depth)
+            axes.invert_yaxis()
+            axes.yaxis.grid(True)
+            axes.get_xaxis().set_visible(False) 
+            for (i,j) in zip(tops_depths,tops):
+                if ((i>=top_depth) and (i<=bottom_depth)):
+                    axes.axhline(y=i, linewidth=1.0, color='red')
+                    axes.text(0.1, i ,j, horizontalalignment='center',verticalalignment='center', color = 'red')
+        
+            
+        #1st track: GR, CALI, SP track
+        ax01=ax[0].twiny()
+        ax01.set_xlim(-100,10)
+        ax01.spines['top'].set_position(('outward',0))
+        ax01.set_xlabel("SP [mV]")
+        ax01.plot(logs.sp, logs.DEPT, label='SP[mV]', color='black',linewidth=3.0)
+        ax01.set_xlabel('SP[mV]',color='black')    
+        ax01.tick_params(axis='x', colors='black')
+        ax01.grid(True)
+        
+        ax02=ax[0].twiny()
+        ax02.set_xlim(6,36)
+        ax02.plot(logs.cali, logs.DEPT, '--', label='CALN[in]', color='blue') 
+        ax02.spines['top'].set_position(('outward',40))
+        ax02.set_xlabel('CALI[in]',color='blue')    
+        ax02.tick_params(axis='x', colors='blue')
+        
+        ax03=ax[0].twiny()
+        ax03.set_xlim(0,150)
+        ax03.plot(logs.gr, logs.DEPT, label='GR[api]', color='green') 
+        ax03.spines['top'].set_position(('outward',80))
+        ax03.set_xlabel('GR[api]',color='green')    
+        ax03.tick_params(axis='x', colors='green')
+        
+    
+        #2nd track: Resistivities
+        ax11=ax[1].twiny()
+        ax11.set_xlim(0.1,100)
+        ax11.set_xscale('log')
+        ax11.grid(True)
+        ax11.spines['top'].set_position(('outward',80))
+        ax11.set_xlabel('ILD[ohmm]', color='red')
+        ax11.plot(logs.rt, logs.DEPT, label='ILD[ohmm]', color='red', linewidth=2.0)
+        ax11.tick_params(axis='x', colors='red')    
+        
+        ax12=ax[1].twiny()
+        ax12.set_xlim(0.1,100)
+        ax12.set_xscale('log')
+        ax12.plot(logs.ilm, logs.DEPT, label='ILM[ohmm]', color='purple') 
+        ax12.spines['top'].set_position(('outward',40))
+        ax12.set_xlabel('ILM[ohmm]', color='purple')    
+        ax12.tick_params(axis='x', colors='purple')
+        
+        ax13=ax[1].twiny()
+        ax13.set_xlim(0.1,100)
+        ax13.set_xscale('log')
+        ax13.plot(logs.rmll, logs.DEPT, '--',label='Rxo[ohmm]', color='blue') 
+        ax13.spines['top'].set_position(('outward',0))
+        ax13.set_xlabel('Rxo[ohmm]',color='blue')
+        ax13.tick_params(axis='x', colors='blue')
+    
+        #3rd track: DT, RHOB, NPHI track
+        ax21=ax[2].twiny()
+        ax21.grid(True)
+        ax21.set_xlim(115,36)
+        ax21.spines['top'].set_position(('outward',0))
+        ax21.set_xlabel('DT[us/ft]')
+        #ax21.plot(logs.dt, logs.DEPT, label='DT[us/ft]', color='blue')
+        ax21.set_xlabel('DT[us/ft]', color='blue')    
+        ax21.tick_params(axis='x', colors='blue')
+        
+        ax22=ax[2].twiny()
+        ax22.set_xlim(-0.15,0.45)
+        ax22.invert_xaxis()
+        ax22.plot(logs.nphi, logs.DEPT, label='NPHI[v/v]', color='green') 
+        ax22.spines['top'].set_position(('outward',40))
+        ax22.set_xlabel('NPHI[v/v]', color='green')    
+        ax22.tick_params(axis='x', colors='green')
+        
+        ax23=ax[2].twiny()
+        ax23.set_xlim(1.95,2.95)
+        ax23.plot(logs.rhob, logs.DEPT ,label='RHOB[g/cc]', color='red') 
+        ax23.spines['top'].set_position(('outward',80))
+        ax23.set_xlabel('RHOB[g/cc]',color='red')
+        ax23.tick_params(axis='x', colors='red') 
+    
+        ax24=ax[2].twiny()
+        ax24.set_xlim(-0.15,0.45)
+        ax24.invert_xaxis()
+        ax24.plot(logs.phix, logs.DEPT, label='PHIX[v/v]', color='cyan') 
+        ax24.spines['top'].set_position(('outward',120))
+        ax24.set_xlabel('PHIX[v/v]', color='cyan')    
+        ax24.tick_params(axis='x', colors='cyan')
+        #plt.savefig ('triple_combo_plot.png', dpi=200, format='png')
+    
+        #4th track: NMR
+        ax31=ax[3].twiny()
+        ax31.grid(True)
+        ax31.set_xlim(0.5,0)
+        ax31.spines['top'].set_position(('outward',0))
+        ax31.set_xlabel('MPHI[v/v]')
+        ax31.plot(logs.mphi, logs.DEPT, label='MPHI[v/v]', color='black')
+        ax31.set_xlabel('MPHI[v/v]', color='black')    
+        ax31.tick_params(axis='x', colors='black')
+    
+        ax32=ax[3].twiny()
+        ax32.grid(True)
+        ax32.set_xlim(0.5,0)
+        ax32.spines['top'].set_position(('outward',40))
+        ax32.set_xlabel('MBVI[v/v]')
+        ax32.plot(logs.mbvi, logs.DEPT, label='MBVI[v/v]', color='black')
+        ax32.set_xlabel('MBVI[v/v]', color='black')    
+        ax32.tick_params(axis='x', colors='black')
+        ax32.fill_betweenx(logs.DEPT,logs.mbvi, 0,color='blue',label= 'MBVI')
+        ax32.fill_betweenx(logs.DEPT,logs.mphi, logs.mbvi,color='yellow',label= 'Free Fluid')    
+    
+        plt.show()
+    
+    
+    # =============================================================================
+    #      Display Triple Combo Plot
+    # =============================================================================
+    
+    triple_combo_plot(data.DEPT.min(),data.DEPT.max())
+    
+    # =============================================================================
+    #      Dsiplay Triple Combo Plot 
+    # =============================================================================
+
+
+  
+ 
+    # =============================================================================
+    #      CBW vs. Vsh and MNA vs. Vsh Plots 
+    # =============================================================================
+    logs=data
+    
+    cbw_figure=plt.figure(figsize=(6,5))
+    plt.title('Vsh vs.CBW', color = 'blue')
+    plt.plot(logs.vsh,logs.cbw,'ro', label='',color='red')
+    plt.xlim(0.0,1)
+    plt.ylim(0.0,1)
+    plt.ylabel('CBW [v/v]', color = 'blue')
+    plt.xlabel('Vsh [v/v]', color = 'blue')
+    plt.grid(True, which='both',ls='-',color='gray')
+    plt.show()
+    
+    mapp_figure=plt.figure(figsize=(6,5))
+    plt.title('Vsh vs.Mstar_Apparent', color = 'blue')
+    plt.plot(logs.vsh,logs.mstar,'r.', label='')
+    plt.plot(logs.vsh,logs.mna,'k.', label='')    
+    plt.xlim(0.0,1)
+    plt.ylim(1.0,5)
+    plt.ylabel('Mstar Apparent', color = 'blue')
+    plt.xlabel('Vsh [v/v]', color = 'blue')
+    plt.grid(True, which='both',ls='-',color='gray')
+    plt.show()
+ 
+ 
+    
+    
+    
+    
+    
+    # =============================================================================
+    #
+    #       Aids in Interpretation Plots
+    #
+    # =============================================================================
+    # Create the aids in Interpretations plots
+    def aids_plot(top_depth,bottom_depth):
+        
+        logs=data[(data.DEPT >= top_depth) & (data.DEPT <= bottom_depth)]
+        fig, ax = plt.subplots(nrows=1, ncols=6, figsize=(12,16), sharey=True)
+        fig.suptitle("Aids in Interpretation Plot", fontsize=22)
+        #fig.subplots_adjust(top=0.75,wspace=0.1)
+    
+        #General setting for all axis
+        for axes in ax:
+            axes.set_ylim (top_depth,bottom_depth)
+            axes.invert_yaxis()
+            axes.yaxis.grid(True)
+            axes.get_xaxis().set_visible(False) 
+            for (i,j) in zip(tops_depths,tops):
+                if ((i>=top_depth) and (i<=bottom_depth)):
+                    axes.axhline(y=i, linewidth=1.0, color='red')
+                    axes.text(0.1, i ,j, horizontalalignment='center',verticalalignment='center', color = 'red')
+   
+    
+        gs = gridspec.GridSpec(4, 3)
+        ax1 = fig.add_subplot(gs[:,0])
+        ax2 = fig.add_subplot(gs[0,1])
+        ax3 = fig.add_subplot(gs[1,1])
+        ax4 = fig.add_subplot(gs[2,1])
+        ax5 = fig.add_subplot(gs[3,1])
+        ax6 = fig.add_subplot(gs[:,2],sharey = ax1)
+
+
+        #ax1.title("SP and GR")    
+        # Graph for GR,SP
+        ax1.invert_yaxis()
+        ax1.plot(logs.gr, logs.DEPT, color='green', label ='GR')
+        ax1.plot(logs.sp, logs.DEPT, color='black', label ='SP', linewidth = 3.0)
+        ax1.legend(loc='best',fontsize='x-small')                       
+        ax1.grid(True)
+        ax1.set_ylabel('DEPTH')
+        #ax1.set_xlabel('GR [api]', color='green')
+        ax1=ax1.twiny()
+        ax1.set_xlabel("SP[mV] and GR[GAPI]",color='black')
+
+    
+    
+        #histograms
+        ax2.hist(logs.gr.dropna(),bins=30,color='green')
+        ax2.set_xlabel('GR [api]')
+        #ax2.set_ylabel('Frequency')
+    
+        ax3.hist(logs.sp.dropna(),bins=30, color='black')
+        ax3.set_xlabel('SP [mV]')
+        #ax3.set_ylabel('Frequency')
+    
+        ax4.hist(logs.rt.dropna(),bins=30, color='gray')
+        ax4.set_xlabel('ILD [ohmm]')
+        #ax4.set_ylabel('Frequency')
+    
+    
+        # Neut-Mphi XPlot for Volume of Shale
+        ax5.plot(logs.nphi, logs.mphi,'ro',markersize=4)
+        ax5.set_xlabel('NPHI vs. MPHI [v/v]')
+        ax5.set_xlim(-.05,1.0)
+        ax5.set_ylim(0,1.0)
+        #ax5.set_ylabel('MPHI [V/V]')
+        ax5.grid(True)
+        #Text for shale triangle lines
+        ax5.text(0.05, 0.4, 'clean line', color='red', fontsize=8)
+        ax5.text(0.35, 0.9, 'fluid point',color='blue', fontsize=8)
+        ax5.text(0.6,0.05, 'shale point',color='brown', fontsize=8)
+        # Plot Shale Triangle
+        ax5.plot([0, 1],[0, 1], marker='o', color='red') # this is clean line
+        ax5.plot([0, 0.35],[0, 0], marker='o', color='orange') #this is the 0 line across the bottom
+        ax5.plot([0.35, 1],[0, 1], marker='o', color='brown') #this is from the shale line to 100% porosity line
+
+    
+        #ax6.title("Volume of Shale")
+        ax6.plot(logs.vsh_gr, logs.DEPT, label ='Vshgr',color="green")
+        ax6.plot(logs.vsh_neut, logs.DEPT,label ='Vshnd',color="red")
+        ax6.legend(loc='best',fontsize='x-small')
+        ax6.set_xlim(0,1)
+        ax6.set_ylim(top_depth,bottom_depth)
+        ax6.invert_yaxis()
+        ax6.grid(True)
+        ax6.set_xlabel('Vsh [v.v]')
+    
+        plt.show()
+        #plt.savefig ('vsh_plot.png', dpi=200, format='png')
+    
+    # =============================================================================
+    # Use the histrograms to re-evaluate: - GR min, max (clean, clay) - SP
+    # min, max (clean, clay) - RT min, max (clean, clay) From ND Xplot extract
+    # the clean line and clay point.
+    # 
+    # All vshgr (you can apply any correction here), vshsp, vshrt and vshnd
+    # curves are plotted in the same track for comparison. It is obvious that
+    # the vshgr and vshnd match very well, comparing with the rest.
+    # 
+    # To simplify the intepretation we will accept the vshgr as the vsh.
+    # Another approch is to consider vsh as the minimum value obtained through
+    # several methods (vsh = min (vshgr,vshsp,vshnd)) or Hodges-Lehman Median Filter
+    # =============================================================================
+    #   
+    # =============================================================================
+    #      Final Aids in Interpretation Plots 
+    # =============================================================================
+    
+    aids_plot(data.DEPT.min(),data.DEPT.max())
+    
+    # =============================================================================
+    #      Final Aids in Interpretation Plots 
+    # ============================================================================= 
+ 
+ 
+ 
+ 
+ 
+
+    """
+    ===============================================================================
+    
+             Final Summary Results Plot
+     
+    ===============================================================================
+    """
+    # Create the Summary Plot figure and subplots
+    def summary_plot(top_depth,bottom_depth):
+        
+        logs=data[(data.DEPT >= top_depth) & (data.DEPT <= bottom_depth)]
+        fig, ax = plt.subplots(nrows=1, ncols=6, figsize=(12,16), sharey=True)
+        fig.suptitle("Summary Plot", fontsize=22)
+        fig.subplots_adjust(top=0.75,wspace=0.1)
+    
+        #General setting for all axis
+        for axes in ax:
+            axes.set_ylim (top_depth,bottom_depth)
+            axes.invert_yaxis()
+            axes.yaxis.grid(True)
+            axes.get_xaxis().set_visible(False) 
+            for (i,j) in zip(tops_depths,tops):
+                if ((i>=top_depth) and (i<=bottom_depth)):
+                    axes.axhline(y=i, linewidth=1.0, color='red')
+                    axes.text(0.1, i ,j, horizontalalignment='center',verticalalignment='center', color = 'red')
+        
+            
+        """
+        #1st track: GR, SP, CALI track
+        """
+        ax01=ax[0].twiny()
+        ax01.set_xlim(-100,10)
+        ax01.plot(logs.sp, logs.DEPT, label='SP[mV]', color='black',linewidth=3.0)
+        ax01.set_xlabel('SP[mV]',color='black')    
+        ax01.tick_params(axis='x', colors='black')
+        
+        ax02=ax[0].twiny()
+        ax02.set_xlim(6,36)
+        ax01.grid(True)
+        ax02.plot(logs.cali, logs.DEPT, '--', label='CALI[in]', color='blue') 
+        ax02.spines['top'].set_position(('outward',40))
+        ax02.set_xlabel('CALI[in]',color='blue')    
+        ax02.tick_params(axis='x', colors='blue')
+        
+        ax03=ax[0].twiny()
+        ax03.set_xlim(0,150)
+        ax03.plot(logs.gr, logs.DEPT, label='GR[api]', color='green') 
+        ax03.spines['top'].set_position(('outward',80))
+        ax03.set_xlabel('GR[api]',color='green')    
+        ax03.tick_params(axis='x', colors='green')
+    
+    
+        """
+        #2nd track: Resistivities
+        """
+        ax11=ax[1].twiny()
+        ax11.set_xlim(0.1,100)
+        ax11.set_xscale('log')
+        ax11.grid(True)
+        ax11.spines['top'].set_position(('outward',80))
+        ax11.set_xlabel('ILD[ohmm]', color='red')
+        ax11.plot(logs.rt, logs.DEPT, label='ILD[ohmm]', color='red', linewidth = 2.0)
+        ax11.tick_params(axis='x', colors='red')    
+    
+        ax12=ax[1].twiny()
+        ax12.set_xlim(0.1,100)
+        ax12.set_xscale('log')
+        ax12.plot(logs.ilm, logs.DEPT, label='ILM[ohmm]', color='purple') 
+        ax12.spines['top'].set_position(('outward',40))
+        ax12.set_xlabel('ILM[ohmm]', color='purple')    
+        ax12.tick_params(axis='x', colors='purple')
+        
+        ax13=ax[1].twiny()
+        ax13.set_xlim(0.1,100)
+        ax13.set_xscale('log')
+        ax13.plot(logs.rmll, logs.DEPT, '--',label='Rxo[ohmm]', color='blue') 
+        ax13.spines['top'].set_position(('outward',0))
+        ax13.set_xlabel('Rxo[ohmm]',color='blue')
+        ax13.tick_params(axis='x', colors='blue')
+    
+    
+        """
+        #3rd track: DT, RHOB, NPHI track
+        """
+        ax21=ax[2].twiny()
+        ax21.set_xlim(-0.15,0.45)
+        ax21.invert_xaxis()
+        ax21.plot(logs.phie, logs.DEPT, label='PHIE[v/v]', color='purple',linewidth=2.0) 
+        ax21.spines['top'].set_position(('outward',120))
+        ax21.set_xlabel('PHIE[v/v]', color='purple')    
+        ax21.tick_params(axis='x', colors='purple') 
+        #ax21.legend(loc='lower left')
+    
+        ax22=ax[2].twiny()
+        ax22.set_xlim(-0.15,0.45)
+        ax22.invert_xaxis()
+        ax22.plot(logs.phit, logs.DEPT, label='PHIT[v/v]', color='black',linewidth=2.0) 
+        ax22.spines['top'].set_position(('outward',160))
+        ax22.set_xlabel('PHIT[v/v]', color='black')    
+        ax22.tick_params(axis='x', colors='black') 
+        ax22.fill_betweenx(logs.DEPT,logs.phie,logs.phit,color='lightgray',label='Shale')
+        ax22.legend(loc='lower left')
+    
+        ax23=ax[2].twiny()
+        ax23.grid(True)
+        ax23.set_xlim(115,36)
+        ax23.spines['top'].set_position(('outward',0))
+        ax23.set_xlabel('DT[us/ft]')
+        #ax23.plot(logs.dt, logs.DEPT, label='DT[us/ft]', color='blue',linewidth=1.0)
+        ax23.set_xlabel('DT[us/ft]', color='blue')    
+        ax23.tick_params(axis='x', colors='blue')
+        #ax23.legend(loc='lower left')
+        
+        ax24=ax[2].twiny()
+        ax24.set_xlim(-0.15,0.45)
+        ax24.invert_xaxis()
+        ax24.plot(logs.nphi, logs.DEPT, label='NPHI[v/v]', color='green') 
+        ax24.spines['top'].set_position(('outward',40))
+        ax24.set_xlabel('NPHI[v/v]', color='green')    
+        ax24.tick_params(axis='x', colors='green')
+        #ax24.legend(loc='lower left')
+        
+        ax25=ax[2].twiny()
+        ax25.set_xlim(1.95,2.95)
+        ax25.plot(logs.rhob, logs.DEPT ,label='RHOB[g/cc]', color='red',linewidth=1.0) 
+        ax25.spines['top'].set_position(('outward',80))
+        ax25.set_xlabel('RHOB[g/cc]',color='red')
+        ax25.tick_params(axis='x', colors='red')
+        #ax25.legend(loc='lower left')
+    
+    
+        """
+        #4th track: SW
+        """
+        ax31=ax[3].twiny()
+        ax31.grid(True)
+        ax31.set_xlim(1,0)
+        ax31.plot(logs.swt_i, logs.DEPT, label='Sw_ws', color='red',linewidth=0.5)
+        #ax33.plot(logs.SWs, logs.DEPT, label='SWs', color='green',linewidth=0.5)
+        ax31.fill_betweenx(logs.DEPT,1,logs.swt_i,color='green',label='Sw_ws')
+        ax31.fill_betweenx(logs.DEPT,0,logs.swt_i,color='cyan',label='Sw_ws')
+        ax31.spines['top'].set_position(('outward',0))
+        ax31.set_xlabel('Swt_WS', color='red')    
+        ax31.tick_params(axis='x', colors='red')
+    
+        
+        ax32=ax[3].twiny()
+        ax32.grid(True)
+        ax32.set_xlim(1,0)
+        ax32.plot(logs.swdw, logs.DEPT, label='Sw_dw', color='black',linewidth=0.5)
+        #ax32.plot(logs.SWs, logs.DEPT, label='SWs', color='green',linewidth=0.5)
+        ax32.spines['top'].set_position(('outward',40))
+        ax32.set_xlabel('Sw_DW', color='black')    
+        ax32.tick_params(axis='x', colors='black')
+    
+    
+        """
+        #5th track: PHIE, BVW
+        """
+        ax41=ax[4].twiny()
+        ax41.grid(True)
+        ax41.set_xlim(0.5,0)
+        ax41.plot(logs.phit, logs.DEPT, label='PHIT', color='black', linewidth=0.1)
+        ax41.fill_betweenx(logs.DEPT,logs.phit, logs.phie,color='lightgray',label= 'CBW')
+        ax41.spines['top'].set_position(('outward',0))
+        ax41.set_xlabel('PHIT', color='black')    
+        ax41.tick_params(axis='x', colors='black')
+    
+        ax42=ax[4].twiny()
+        ax42.grid(True)
+        ax42.set_xlim(0.5,0)
+        ax42.plot(logs.phie, logs.DEPT, label='PHIE', color='black', linewidth=0.5)
+        ax42.fill_betweenx(logs.DEPT,0,logs.bvwe,color='cyan',label= 'Water')
+        ax42.spines['top'].set_position(('outward',40))
+        ax42.set_xlabel('PHIE', color='black')    
+        ax42.tick_params(axis='x', colors='black')
+    
+        ax43=ax[4].twiny()
+        ax43.set_xlim(0.5,0)
+        ax43.plot(logs.bvwe, logs.DEPT, label='WS BVWE', color='black')
+        ax43.fill_betweenx(logs.DEPT,logs.phie, logs.bvwe,color='red',label= 'HC')
+        #ax43.fill_betweenx(logs.DEPT,logs.mbvi, 0,color='darkblue',label= 'MBVI')
+        ax43.spines['top'].set_position(('outward',80))
+        ax43.set_xlabel('BVWE', color='black')    
+        ax43.tick_params(axis='x', colors='black')
+    
+        ax44=ax[4].twiny()
+        ax44.set_xlim(0.5,0)
+        ax44.plot(logs.mbvi, logs.DEPT, label='MBVI', color='black')
+        #ax44.fill_betweenx(logs.DEPT,logs.PHIE, logs.WSCBVWE,color='red',label= 'HC')
+        ax44.fill_betweenx(logs.DEPT,logs.mbvi, 0,color='blue',label= 'MBVI')
+        ax44.spines['top'].set_position(('outward',120))
+        ax44.set_xlabel('MBVI', color='black')    
+        ax44.tick_params(axis='x', colors='black')
+    
+    
+    
+        """
+        #6th track: PHIE, MATRIX, Shale
+        """
+        ax50=ax[5].twiny()
+        ax50.set_xlim(1,0)
+        ax50.spines['top'].set_position(('outward',0))
+        ax50.plot(logs.phie, logs.DEPT, label='PHIE', color='black',linewidth=0.5)
+        ax50.set_xlabel('PHIE]', color='black')    
+        ax50.tick_params(axis='x', colors='black')
+    
+        ax51=ax[5].twiny()
+        ax51.set_xlim(0,1)
+        ax51.spines['top'].set_position(('outward',40))
+        ax51.plot(logs.vsh, logs.DEPT, label='Vsh', color='green',linewidth=0.5)
+        ax51.set_xlabel('Vsh', color='green')    
+        ax51.tick_params(axis='x', colors='green')
+    
+        ax52=ax[5].twiny()
+        ax52.set_xlim(1,0)
+        ax52.spines['top'].set_position(('outward',0))
+        ax52.fill_betweenx(logs.DEPT,0,logs.phie,color='black',label='Porosity')
+        ax52.fill_betweenx(logs.DEPT,logs.phie,1-logs.vsh,color='yellow',label='Matrix')
+        ax52.fill_betweenx(logs.DEPT,1-logs.vsh,1,color='lightgray',label= 'Shale')
+        ax52.legend(loc='lower left')
+        plt.show()
+        #plt.savefig ('summary_plot.png', dpi=200, format='png')
+    
+    # =============================================================================
+    #      Final Summary Plot 
+    # =============================================================================
+    
+    summary_plot(data.DEPT.min(),data.DEPT.max())
+    
+    # =============================================================================
+    #      Final Summary Plot 
+    # =============================================================================
+      
+    
+    
+    
+    
+    
+    
+    
+    
+  
+
+    # Store data into geolog
+    geolog.puttable()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

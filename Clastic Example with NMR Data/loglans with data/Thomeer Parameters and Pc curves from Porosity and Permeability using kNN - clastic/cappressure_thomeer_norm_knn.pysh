@@ -1,0 +1,333 @@
+#!/usr/bin/env python3
+# python loglan
+
+
+# Imports
+import geolog
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import math
+
+k=0
+count_pc=0
+
+# Load data from geolog
+while geolog.getrow():
+
+    # =============================================================================
+    # # ===========================================================================
+    # # #--------------------------------------------------------------------------
+    # # #           
+    # # #            Read in NMR log data from Geolog
+    # # #                   
+    # # #--------------------------------------------------------------------------
+    # # ===========================================================================
+    # =============================================================================
+
+    #perm_max = 4
+    #perm_min = -4
+    #por_max = .5
+    #por_min = 0
+
+    Por = phie
+    Perm = perm
+
+
+    # =============================================================================
+    # # ===========================================================================
+    # # #-------------------------------------------------------------------------- 
+    # # #        Read in Reference data (_r) from csv file
+    # # #        Read in the reference NMR and Core data which has the Core Kair 
+    # # #        The Core data is only available for the upper half of well
+    # # #--------------------------------------------------------------------------
+    # # ===========================================================================
+    # =============================================================================
+    core_NMR_data = pd.read_csv('./data/Thomeer_clastics.csv')
+    #core_NMR_data = pd.read_csv('RSWC_CMR.csv').to_numpy
+
+
+
+    Permeability = core_NMR_data['PERMEABILITY']
+    Porosity = core_NMR_data['POROSITY']
+    G1 = core_NMR_data['G1']
+    PD1 = core_NMR_data['PD1']
+    G2 = core_NMR_data['G2']
+    PD2 = core_NMR_data['PD2']
+    BV1 = core_NMR_data['BV1']
+    BV2 = core_NMR_data['BV2']
+    Mode = core_NMR_data['Mode']
+
+    x=np.array(Porosity)
+    y=np.array(Permeability)
+    z=np.array(Mode)
+    
+    if k == 0:
+        plt.figure(1,figsize=(7,8))    
+        plt.scatter(x, y, c=z, s=z*3, alpha=0.5)
+        plt.yscale('log')
+        plt.xlim(0, 0.4)
+        plt.ylim(0.01, 10000)
+        plt.title("Bubbles and Colors are Based on Mode of the PTD")
+        plt.ylabel('Permeability')
+        plt.xlabel('Porosity')
+        plt.grid(True)
+        plt.show()
+        
+        k=k+1
+
+
+    
+
+    # =============================================================================
+    # # ===========================================================================
+    # # #--------------------------------------------------------------------------
+    # # #
+    # # #            This is the beginnin of kNN for Permeability Estimations
+    # # #
+    # # #--------------------------------------------------------------------------
+    # # ===========================================================================
+    # =============================================================================
+ 
+
+ 
+        
+
+    #normalized Porosity and Permeability inputs
+    por = (Por-por_min)/(por_max - por_min)
+    perm= (math.log10(Perm) - perm_min)/(perm_max - perm_min) 
+ 
+
+
+
+
+    # =============================================================================
+    # #---------------------------------------------------------------------------- 
+    # #           
+    # #              ESTIMATE THOMEER PARAMETERS FOR BOTH PORE SYSTEMS
+    # #                   
+    # #----------------------------------------------------------------------------
+    # =============================================================================
+
+    dist_inv = []
+    dist_phi = []
+    dist_lperm = []
+    G1_weight = []
+    PD1_weight = []
+    BV1_weight = []
+    G2_weight = []
+    PD2_weight = []
+    BV2_weight = []
+    #Rock_Index_weight = []
+
+
+    dist_inv_total=0
+    G1_total  = 0
+    PD1_total = 0
+    BV1_total = 0
+    G2_total  = 0
+    PD2_total = 0
+    BV2_total = 0
+
+
+
+
+    inv_dist_array = []
+    #distance_knn_array = [rows,columns]
+    distance_knn_array = []
+
+
+    #------------------------------------------------------------------ 
+    #               Estimate all Thomeer Parameters for *_est values
+    #-------------------------------------------------------------------
+
+    Porosity_norm     = []
+    Permeability_norm = []
+
+
+    #this is the mapinv_reference_data being used 
+    for i in range(0,len(core_NMR_data),1):
+
+        Porosity_norm.append((Porosity[i] - por_min) / (por_max - por_min))
+        Permeability_norm.append((math.log10(Permeability[i]) - perm_min) / (perm_max - perm_min))
+        
+        #Euclidian Distance
+        dist_phi.append(   abs(por  - Porosity_norm[i]    ))  
+        dist_lperm.append( abs(perm - Permeability_norm[i]))
+        dist_inv.append( 1  /  math.sqrt(  dist_phi[i]**2 + dist_lperm[i]**2)  )
+
+        
+        #calculalte weights for each
+        G1_weight.append(dist_inv[i]  * G1[i])
+        PD1_weight.append(dist_inv[i] * PD1[i])
+        BV1_weight.append(dist_inv[i] * BV1[i])
+        G2_weight.append(dist_inv[i]  * G2[i])
+        PD2_weight.append(dist_inv[i] * PD2[i])
+        BV2_weight.append(dist_inv[i] * BV2[i])
+        #Rock_Index_weight.append(dist_inv[i] * Rock_Index[i])
+        
+
+
+        inv_dist_array.append(dist_inv[i]);  # add items
+
+    # =============================================================================
+    ###                    KNN Array
+    # # ===========================================================================
+    # # #--------------------------------------------------------------------------
+        distance_knn_array = [dist_inv, G1_weight, PD1_weight, BV1_weight, G2_weight, PD2_weight, BV2_weight]
+    #        distance_knn_array = [Permeability, Porosity, G1, PD1, BV1, G2, PD2, BV2]
+    # # #--------------------------------------------------------------------------
+    # # ===========================================================================
+    # =============================================================================
+    #xnorm=np.array(Porosity_norm)
+    #ynorm=np.array(Permeability_norm)
+
+
+    # =============================================================================
+    # # ===========================================================================
+    # # #--------------------------------------------------------------------------
+    # # #           
+    # # #               Transpose and Sort new kNN array
+    # # #                   
+    # # #--------------------------------------------------------------------------
+    # # ===========================================================================
+    # =============================================================================
+
+    #knn_array = np.transpose array
+    knn_array = np.transpose(distance_knn_array)
+    #print(knn_array)
+
+    #Sort array from large to low by column 0 which is dist_inv 
+    #xknn=np.array(knn_array)
+
+    #matsor x[x[:,column].argsort()[::-1]] and -1 us reverse order
+    mat_sort = knn_array[knn_array[:,0].argsort()[::-1]] #firt column reverse sort (-1)
+    #mat_sort = x[x[:,1].argsort()[::-1]]
+    #mat_sort = x[x[:,2].argsort()[::-1]]
+
+
+
+
+
+
+
+
+
+    # =============================================================================
+    # # ===========================================================================
+    # # #--------------------------------------------------------------------------
+    # # #           
+    # # #               Calculate knn Thomeer Parameters
+    # # #                   
+    # # #--------------------------------------------------------------------------
+    # # ===========================================================================
+    # =============================================================================
+
+
+    #------------------------------------------------------------------------------
+    #    Number of nearest Neighbors
+    #------------------------------------------------------------------------------
+    n_neighbors = 3
+    #------------------------------------------------------------------------------
+
+    dist_inv_total_knn = 0
+    G1_total_knn = 0
+    PD1_total_knn = 0
+    BV1_total_knn = 0
+    G2_total_knn = 0
+    PD2_total_knn = 0
+    BV2_total_knn = 0
+    #Rock_Index_total_knn = 0
+
+
+
+    #kNN Estimates for first 3 rows
+    #dist_inv_total = mat_sort[0][0] + mat_sort[1][0] + mat_sort[2][0]
+    for i in range(0,n_neighbors,1):
+        dist_inv_total_knn = dist_inv_total_knn + mat_sort[i][0]
+        G1_total_knn  = G1_total_knn + mat_sort[i][1]
+        PD1_total_knn = PD1_total_knn + mat_sort[i][2]
+        BV1_total_knn = BV1_total_knn + mat_sort[i][3]
+        G2_total_knn  = G2_total_knn + mat_sort[i][4]
+        PD2_total_knn = PD2_total_knn + mat_sort[i][5]
+        BV2_total_knn = BV2_total_knn + mat_sort[i][6]
+        #Rock_Index_total_knn = Rock_Index_total_knn + mat_sort[i][7]
+        #print(mat_sort[i][7])
+        
+        
+    #back to k values and calculate estimations now
+    g1_est_knn  = G1_total_knn  / dist_inv_total_knn
+    pd1_est_knn = PD1_total_knn / dist_inv_total_knn
+    bv1_est_knn = (BV1_total_knn / dist_inv_total_knn)
+    g2_est_knn  = G2_total_knn  / dist_inv_total_knn
+    pd2_est_knn = PD2_total_knn / dist_inv_total_knn
+    bv2_est_knn = (BV2_total_knn / dist_inv_total_knn)
+    mode = math.exp(-1.15*g1_est_knn) * (214/pd1_est_knn)
+    #Rock_Index_est_knn = int(Rock_Index_total_knn / n_neighbors)
+
+
+    Pc = 0.5
+    bvarray = []
+    pcarray = []
+
+    for j in range(1, 105, 1):
+        if Pc > pd1_est_knn:
+            BVOCC1 = bv1_est_knn * 10**((-0.434 * g1_est_knn) / math.log10(Pc / pd1_est_knn))
+        else:
+            BVOCC1 = 0.001
+
+        if Pc > pd2_est_knn:
+            BVOCC2 = bv2_est_knn * 10**((-0.434 * g2_est_knn) / math.log10(Pc / pd2_est_knn))
+        else:
+            BVOCC2 = 0.001
+
+
+        BVOCC = BVOCC1 + BVOCC2
+        
+        bvarray.append(BVOCC)
+        pcarray.append(Pc)
+        
+        Pc = Pc * 1.12
+
+       
+    x=np.array(bvarray)
+    y=np.array(pcarray)
+
+    #Calculate rate of change
+    xdiff0 = np.diff(x)
+    ptd  = np.hstack((0, xdiff0))
+
+ 
+    
+    if count_pc==50:
+        plt.figure(1,figsize=(7,8))    
+        plt.plot(x, y)
+        #plt.gca().invert_xaxis()
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.xlim(100, 1)
+        plt.ylim(1, 10000)
+        plt.title("Example Capillary Pressure Curve")
+        plt.ylabel('Pc')
+        plt.xlabel('BVocc')
+        plt.grid(True)
+        plt.show()
+    
+    count_pc=count_pc + 1    
+
+
+  
+    # Store data into geolog
+    geolog.putrow()
+
+
+
+
+
+
+
+
+
+
+
+

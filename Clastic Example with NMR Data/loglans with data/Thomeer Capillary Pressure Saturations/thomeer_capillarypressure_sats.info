@@ -1,0 +1,22 @@
+# spec : 
+LANGUAGE = PYTHON
+MODE:  ARG:        VAR:        TYPE:     REPEAT: DEFAULT:     VALIDATION: LOCATION: UNIT: VISIBLE: TAB_LABEL: COMMENT=
+#====  ====        ====        =====     ======= ========     =========== ========= ===== ======== ========== ========                                            
+INPUT  FILE_IN     file_in     FILE      ""      ""           ""          ""        ""    TRUE     ""         "Input table (pipe)."
+INPUT  FILE_OUT    file_out    FILE      ""      ""           ""          ""        ""    TRUE     ""         "Output table (pipe)."
+INPUT  SET_IN      set_in      REAL      ""      KNN_THOMEER  ""          PARAMETER ""    TRUE     ""         "Thomeer Parameter Set"
+INPUT  SET_OUT     set_out     REAL      ""      THOMEER_SATS ""          PARAMETER ""    TRUE     ""         "Thomeer Cap Pressure Saturations"
+IN_OUT RHO_F       rho_f       NAME_REAL ""      1.1          ""          CONSTANT  G/C3  TRUE     ""         "Density of Water"
+IN_OUT RHO_HC      rho_hc      NAME_REAL ""      .85          ""          CONSTANT  G/C3  TRUE     ""         "Density of HC"
+IN_OUT TCOSTHETAWW tcosthetaww NAME_REAL ""      26           ""          CONSTANT  V/V   TRUE     ""         IFT*cos(theta)
+IN_OUT FWL         fwl         NAME_REAL ""      4616         ""          CONSTANT  FEET  TRUE     ""         "Elevation of the Free Water Level in MD (for now)"
+INPUT  DEPTH       depth       NAME_REAL ""      DEPTH        ""          LOG       FEET  TRUE     ""         "Downhole depth (for now)"
+INPUT  G1          g1          NAME_REAL ""      G1           ""          LOG       ""    TRUE     ""         "Thomeer G1"
+INPUT  G2          g2          NAME_REAL ""      G2           ""          LOG       ""    TRUE     ""         "Thomeer G2"
+INPUT  PD1         pd1         NAME_REAL ""      PD1          ""          LOG       PSI   TRUE     ""         "Thomeer PD1"
+INPUT  PD2         pd2         NAME_REAL ""      PD2          ""          LOG       PSI   TRUE     ""         "Thomeer PD2"
+INPUT  BV1         bv1         NAME_REAL ""      BV1          ""          LOG       V/V   TRUE     ""         "Thomeer BV1"
+INPUT  BV2         bv2         NAME_REAL ""      BV2          ""          LOG       V/V   TRUE     ""         "Thomeer BV2"
+OUTPUT H           h           NAME_REAL ""      H            ""          LOG       FEET  TRUE     ""         "Height above FWL"
+OUTPUT BVO         bvo         NAME_REAL ""      BVO          ""          LOG       V/V   TRUE     ""         "Bulk Volume Oil from Thomeer"
+OUTPUT SW          sw          NAME_REAL ""      SW           ""          LOG       V/V   TRUE     ""         "Sw from Thomeer"

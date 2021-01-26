@@ -1,0 +1,339 @@
+#!/usr/bin/env python3
+# python loglan
+
+# Imports
+import geolog
+import numpy as np
+import math
+import pandas as pd
+
+
+# Load data from geolog
+while geolog.getrow():
+
+
+    # Compute temperature profile of well using 80 DegF at 100' as surface Temperatures
+    t = 80 + ( blt - 80 ) * ( depth - 100 )/ ( bli - 100 )
+
+    #--------------------------------------------------
+    #----- COMPUTE CCW, CW AND VQ ------------------
+    tc = (t-32)/1.8
+    tk = tc + 273.16 
+    #----CW=1/RW ------------------------------------
+    cw = (t + 6.77)/(rw*(rwt + 6.77))
+    #----- COMPUTE RW AT FORMATION TEMP (Deg F) ----
+    rwg  = rw*(rwt + 6.77)/(t + 6.77)
+    rw75 = ((rwt + 6.77)*rw)/(75 + 6.77)
+    cw75 = 1/rw75
+    #-------- SAL in KPPM -- W of Jones  W*FD/1000=C -----
+    sal = 10** ((3.562 - math.log10(rw75-0.0123))/0.955)     
+    sal = sal/1000
+
+    #-----------------------------------------------
+    #     ALPHA FROM DUAL WATER MODEL               
+    #     USUALLY 1 UNLESS SAL < 40 PPK 
+    #     Cannon SPWLA 1995
+    #-----------------------------------------------
+    #      CCW=0.0007*(TC+8.5)*(TC+298)
+    #ccw_old  = 0.0007*(tc + 8.5)*(tc + 298)
+    ccw_old = 0.000216*(t - 16.7)*(t + 504.4)
+    #   OLD FROM COATES   CCW=0.000216*(T-16.7)*(T+504.4)
+    #-----------------------------------------------
+    #-----------------------------------------------
+    #     ALPHA FROM DUAL WATER MODEL               
+    #     USUALLY 1 UNLESS SAL < 40 PPK 
+    #     Cannon SPWLA 1995
+    #-----------------------------------------------
+    vq = 0.3*(320/(tk+25))              
+    beta = 2.05*((t-32)/1.8)/30.5  
+    xmol = rho_f * sal/58.45
+    vqh = vq              
+    if xmol < .35:
+        #--------- Coates 0.041 vs. Cannon 0.41 ? -------------
+        gamma1=10**(0.041*xmol-(.506*(xmol)**0.5)/(1+1.24*(xmol)**0.5))
+        alpha=(0.245/(gamma1*xmol))**0.5
+        avqhx=.0487*3.06*(1/(gamma1*xmol))**0.5
+        avqh=avqhx*(tk/295.16)**0.5
+    else:
+        alpha = 1.0   
+        avqh = vq
+  
+    ccw_cannon = beta/avqh
+    
+    ccw = ccw_old
+
+
+    #----- CALCULATE B (IN DEG. F.) ----------------
+    #    B=EXP(7.3-28.242/LOG(T)-0.2266*LOG(RWG))
+    #----- CALCULATE B (IN DEG. C.) Juhaz ----------
+    b1=(-1.28+0.225*tc-0.0004059*tc**2)
+    b2=1+(rwg**1.23)*(0.045*tc - 0.27)                                        
+    bjuhaz=b1/b2          
+    #----B by Gravestock ------------------------------
+    bgrav = 0.1*1.5814*tc*(1-0.83*math.exp(-cw75/2))    
+    #----B by Dacy and Martin  ------------------------------
+    #b =   (1-0.83*math.exp(-math.exp(-2.38+(42.17/tc))/rwg))*(-3.16+1.59*math.log10(tc))**2 #SCA Paper SCA2006-29
+    bdacy=(1-0.83*math.exp(-math.exp(-2.38+(42.17/tc))/rwg))*(-3.16+1.59*math.log(tc))**2     #SCA Paper SCA2006-29
+    b=bjuhaz
+    
+    #----------------------------------------------
+    #
+    #         Vshale MODELS
+    #
+    #----------------------------------------------
+    #
+    #         GR Vsh model 
+    #
+    #----------------------------------------------
+    # Begin vsh_gr processing  
+    # Check GR present and parameters valid
+    # Calculate shale volumes in linear per Heslep
+    vsh_gr = ( gr - gr_ma ) / ( gr_sh - gr_ma )
+
+    # limit vsh between 0 and 1:    
+    if vsh_gr>1:
+        vsh_gr=1
+    elif vsh_gr<0:
+        vsh_gr=0
+    else:
+        vsh_gr=vsh_gr
+    #--------------------------------------------------
+    #
+    #      COMPUTE VSH FROM mphi-nphi Shale TRIANGLE 
+    #
+    #--------------------------------------------------
+    #phi=(mphi * nphi_sh - nphi * mphi_sh)/(nphi_sh - mphi_sh)
+    #vsh_neut = (nphi-phi)/(nphi_sh)
+
+    # limit vsh between 0 and 1:    
+    #if vsh_neut>1:
+    #    vsh_neut=1
+    #elif vsh_neut<0:
+    #   vsh_neut=0
+    #else:
+    #   vsh_neut=vsh_neut
+
+    #--------------------------------------------------
+    #
+    #    COMPUTE VSH FROM rhob-nphi Shale TRIANGLE 
+    #
+    #--------------------------------------------------
+    phi_nd=(nphi_sh*(rhob - rho_m)-(rho_sh - rho_m)*nphi)/(nphi_sh*(rho_f - rho_m) - (rho_sh - rho_m))
+
+    vsh_nd=(nphi - phi_nd)/nphi_sh
+
+
+    # limit vsh between 0 and 1:    
+    if vsh_nd>1:
+        vsh_nd=1
+    elif vsh_nd<0:
+        vsh_nd=0
+    else:
+        vsh_nd=vsh_nd
+  
+
+    #--------------------------------------------------
+    if vsh_opt == 'GR':
+        vsh = vsh_gr
+    elif vsh_opt == 'NEUTDEN':
+        vsh = vsh_nd             
+    else:
+        vsh = vsh_neut
+    #---------------------------------------------------
+    #
+    #          END OF VSH MODELS 
+    #
+    #---------------------------------------------------
+
+
+    #--------------------------------------------------
+    #
+    #     TOTAL POROSITY OPTIONS                            
+    #
+    #----- COMPUTE TOTAL POROSITY ------------------
+    por_den = (rho_m - rhob)/(rho_m-rho_f)
+    phit = math.sqrt( (por_den**2 + nphi**2)/2 )
+
+    if por_opt == 'NEUTDEN':
+        phit = phit
+    else:
+        phit = por_den
+        
+
+    # limit phit between 0 and 1:    
+    if phit >  1:
+        phit = 1
+    elif phit <= 0:
+        phit = 0.0001
+    else:
+        phit = phit
+    #---------------------------------------------------
+    #
+    #    END OF POROSITY OPTIONS 
+    #
+    #--------------------------------------------------
+
+
+
+    #--------------------------------------------------
+    #
+    #      TOP OF SWB OPTIONS                               
+    #      FROM VSH or SWB CROSSPLOT  for CBW                         
+    #
+    #--------------------------------------------------
+    #if cbw_opt == 'ASIS':       # No Change and CBW is taken from phit - MPHI
+    #   swb = 1.0 - (mphi/phit)
+    #  phie = mphi 
+    #  cbw = phit - phie
+    
+    #if cbw_opt == 'VSH':      # CBW from Vsh trend of CBW vs. Vsh
+    cbw = vsh * cbw_int
+    phie = phit - cbw
+    swb = 1 - (phie/phit)
+
+    #else:                       # CBW from Swb trend of CBW vs. Swb
+    #   cbw = swb * cbw_int
+    #   phie = phit - cbw
+    #  swb = 1 - (phie/phit)
+
+    # limit swb between 0 and 1:    
+    if swb >  1:
+        swb = 1
+    elif swb <= 0:
+        swb = 0.0001
+    else:
+        swb = swb
+
+    # limit cbw between 0 and 1:    
+    if cbw >  1:
+        cbw = 1
+    elif cbw <= 0:
+        cbw = 0.0001
+    else:
+        cbw = cbw
+
+    #--------------------------------------------------
+    #      END OF SWB OPTIONS
+    #--------------------------------------------------
+
+
+
+    #************************************************************
+    #------------------------------------------------------------
+    #    WAXMAN SMITS ANALYSIS                
+    #------------------------------------------------------------
+    qv = swb/(0.6425/((rho_f*sal)**0.5) +0.22)
+    #fstar = (1/phit**m)*(1+rwg*b*qv)
+    #------------------------------------------------------------
+    #    SWAP IS SW APPARENT
+    #------------------------------------------------------------
+    # MNA is calculated apparent m* where m* is only valid in wet intervals forming a wet trend of m* vs. Vsh  
+    #if phit > 0.01:
+    mna = math.log10(rwg*1/(rt*(1+rwg*b*qv)))/math.log10(phit)
+    y = qv*phit/(1 - phit)   
+    mstar_slb = 1.65+1.128*y+0.22*(1-2.717**(-17.3*y))  # SLB method to calculate m*
+    
+    # Archie m is used as y intercept where with no Swb m and m* are equal
+    #if mstar_opt == 'SWB':
+    #    mnc = mslope * swb + m
+    if mstar_opt == 'VSH':
+        mnc = mslope * vsh + m
+    elif mstar_opt == 'SLB':
+        mnc = mstar_slb
+        
+    mstar = mnc
+
+    #------------------------------------------------------------
+    #     COMPUTE FMNC                                                             
+    #------------------------------------------------------------
+    #  FMNC=1/phit**MNC
+    #  RISTAR=RT*(1+RWG*B*QV/(BVIT/phit))/(FSTAR*RWG)
+    #------------------------------------------------------------
+    #     COMPUTE RTPRIME                                                          
+    #------------------------------------------------------------
+    #  RTPRIME=RT*(1+RWG*B*QV)            
+    #------------------------------------------------------------
+    #      COMPUTE CWA                                                          
+    #------------------------------------------------------------
+    #------------------------------------------------------------
+    #      SWBcwa= SQRT(Cwa/Ccw)   Swir zones only
+    #      SWBCBW=(NMRphit-mphi)/NMRphit
+    #      BN=1-mphi/CNCF=(CNCF-mphi)/CNCF
+    #      Vsh=CNC-mphi xplot - calibrate to slope of 1
+    #      MRAX.SWB=(phit-mphi)/phit if asis option is used
+    #------------------------------------------------------------
+
+    #------------------------------------------------------------
+    #      WAXMAN-SMITS ITERATIVE approach to calculating Swt                                   
+    #------------------------------------------------------------
+    #------------------------------------------------------------
+    swap=0
+    for i in range(0, 100, 1):
+        swap = swap + .01
+        swt_i =(((1/phit**mstar)*rwg)/(rt*(1+rwg*b*qv/swap)))**(1/n)
+        if swt_i <= swap:
+            exit
+     # limit sw between 0 and 1:    
+    if swt_i >  1:
+        swt_i = 1
+    elif swt_i <= 0:
+        swt_i = 0.0001
+    else:
+        swt_i = swt_i   
+    
+   
+    #----------------------------------------------------------------
+    #        Crain non-iterative approach to Waxman-Smits equation
+    #----------------------------------------------------------------
+    swt_c = 0.5 * (    (- b*qv*rw75) + (  (b*qv*rw75)**2  +  4*(1/phit**mstar)*rw/rt)**0.5)**(2/2)
+
+    # limit swt between 0 and 1:    
+    if swt_c >  1:
+        swt_c = 1
+    elif swt_c <= 0:
+        swt_c = 0.0001
+    else:
+        swt_c = swt_c
+    #------------------------------------------------------------
+    #    END WAXMAN-SMITS                           
+    #------------------------------------------------------------
+
+    if wax_smits_opt == 'ITERATIVE':
+        swt = swt_i
+    elif wax_smits_opt == 'CRAIN':
+        swt = swt_c
+        
+
+    bvwt = phit * swt 
+    bvwe = bvwt - cbw
+    bvo = phit*(1-swt)
+
+    # limit bvwe between 0 and mphi_corr:    
+    if bvwe >  phie:
+        bvwe = phie
+    elif bvwe <= 0:
+        bvwe = 0.0001
+    else:
+        bvwe = bvwe
+
+    perm=(((phie*100/10)**2)*((1-swirr)/swirr))**2
+
+
+    # Store data into geolog
+    geolog.putrow()
+
+
+#while geolog.gettable():
+
+
+
+
+
+
+
+
+
+
+
+
+

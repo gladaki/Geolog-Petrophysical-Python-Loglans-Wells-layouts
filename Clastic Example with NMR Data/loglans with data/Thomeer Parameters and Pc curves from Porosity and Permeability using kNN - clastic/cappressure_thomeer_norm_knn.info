@@ -1,0 +1,25 @@
+# spec : 
+LANGUAGE = PYTHON
+MODE:  ARG:        VAR:        TYPE:         REPEAT: DEFAULT:     VALIDATION: LOCATION: UNIT:   VISIBLE: TAB_LABEL: COMMENT=
+#====  ====        ====        =====         ======= ========     =========== ========= =====   ======== ========== ========                                  
+INPUT  FILE_IN     file_in     FILE          ""      ""           ""          ""        ""      TRUE     ""         "Input table (pipe)."
+INPUT  FILE_OUT    file_out    FILE          ""      ""           ""          ""        ""      TRUE     ""         "Output table (pipe)."
+INPUT  SET_IN      set_in      REAL          ""      MRIL         ""          PARAMETER ""      TRUE     ""         "NMR Data"
+INPUT  SET_OUT     set_out     REAL          ""      KNN_THOMEER  ""          PARAMETER ""      TRUE     ""         "kNN Perm Estimate Set"
+IN_OUT N_NEIGHBORS n_neighbors NAME_INT      ""      3            ""          CONSTANT  ""      TRUE     ""         "kNN Number of Nearest Neighbors"
+IN_OUT POR_MAX     por_max     NAME_REAL     ""      0.5          ""          CONSTANT  V/V     TRUE     ""         "Max Porosity for Porosity Normalization"
+IN_OUT POR_MIN     por_min     NAME_REAL     ""      0.0          ""          CONSTANT  V/V     TRUE     ""         "Min Porosity for Porosity Normalization"
+IN_OUT PERM_MAX    perm_max    NAME_REAL     ""      4            ""          CONSTANT  MD      TRUE     ""         "log10 of Permeability Max"
+IN_OUT PERM_MIN    perm_min    NAME_REAL     ""      -4           ""          CONSTANT  MD      TRUE     ""         "log10 Permeability Min"
+INPUT  PHIE        phie        NAME_REAL     ""      WS.PHIE      ""          LOG       V/V     TRUE     ""         "Effective Porosity (No CBW)"
+INPUT  PERM        perm        NAME_REAL     ""      PERM_EST_KNN ""          LOG       MD      TRUE     ""         "Permeability Estimated from kNN"
+OUTPUT G1_EST_KNN  g1_est_knn  NAME_REAL     ""      G1           ""          LOG       ""      TRUE     ""         "Thomeer G1"
+OUTPUT G2_EST_KNN  g2_est_knn  NAME_REAL     ""      G2           ""          LOG       ""      TRUE     ""         "Thomeer G2"
+OUTPUT PD1_EST_KNN pd1_est_knn NAME_REAL     ""      PD1          ""          LOG       PSI     TRUE     ""         "Thomeer PD1"
+OUTPUT PD2_EST_KNN pd2_est_knn NAME_REAL     ""      PD2          ""          LOG       PSI     TRUE     ""         "Thomeer PD2"
+OUTPUT BV1_EST_KNN bv1_est_knn NAME_REAL     ""      BV1          ""          LOG       V/V     TRUE     ""         "Thomeer BV1"
+OUTPUT BV2_EST_KNN bv2_est_knn NAME_REAL     ""      BV2          ""          LOG       V/V     TRUE     ""         "Thomeer BV2"
+OUTPUT MODE        mode        NAME_REAL     ""      MODE         ""          LOG       MICRONS TRUE     ""         "Mode of Pore Throat Distribution"
+OUTPUT PTD         ptd         NAME_REAL*105 ""      PTD          ""          LOG       ""      TRUE     ""         "Pore Throat Distribution"
+OUTPUT BVARRAY     bvarray     NAME_REAL*105 ""      BVARRAY      ""          LOG       ""      TRUE     ""         "Bulk Volume Array"
+OUTPUT PCARRAY     pcarray     NAME_REAL*105 ""      PCARRAY      ""          LOG       ""      TRUE     ""         "PC Array"

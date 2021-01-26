@@ -1,0 +1,14 @@
+# spec : 
+LANGUAGE = PYTHON
+MODE:  ARG:         VAR:         TYPE:     REPEAT: DEFAULT:     VALIDATION: LOCATION: UNIT: VISIBLE: TAB_LABEL: COMMENT=
+#====  ====         ====         =====     ======= ========     =========== ========= ===== ======== ========== ========                                  
+INPUT  FILE_IN      file_in      FILE      ""      ""           ""          ""        ""    TRUE     ""         "Input table (pipe)."
+INPUT  FILE_OUT     file_out     FILE      ""      ""           ""          ""        ""    TRUE     ""         "Output table (pipe)."
+INPUT  SET_IN       set_in       REAL      ""      MRIL         ""          PARAMETER ""    TRUE     ""         "NMR Data"
+INPUT  SET_OUT      set_out      REAL      ""      KNN_PERM_EST ""          PARAMETER ""    TRUE     ""         "kNN Perm Estimate Set"
+IN_OUT N_NEIGHBORS  n_neighbors  NAME_INT  ""      3            ""          CONSTANT  ""    TRUE     ""         "kNN Number of Nearest Neighbors"
+IN_OUT POR_MIN      por_min      NAME_REAL ""      0.0          ""          CONSTANT  V/V   TRUE     ""         "Min Porosity for Porosity Normalization"
+IN_OUT POR_MAX      por_max      NAME_REAL ""      0.5          ""          CONSTANT  V/V   TRUE     ""         "Max Porosity for Porosity Normalization"
+INPUT  MPHI         mphi         NAME_REAL ""      MRIL.MPHI    ""          LOG       V/V   TRUE     ""         "NMR Effective Porosity"
+INPUT  FFI          ffi          NAME_REAL ""      MRIL.FFI     ""          LOG       V/V   TRUE     ""         "NMR Free Fluid"
+OUTPUT PERM_EST_KNN perm_est_knn NAME_REAL ""      PERM_EST_KNN ""          LOG       MD    TRUE     ""         "Permeability Estimated from kNN"

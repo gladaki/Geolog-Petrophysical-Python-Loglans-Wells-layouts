@@ -1,0 +1,8 @@
+# spec : 
+LANGUAGE = PYTHON
+MODE: ARG:    VAR:    TYPE:     REPEAT: DEFAULT: VALIDATION: LOCATION: UNIT: VISIBLE: TAB_LABEL: COMMENT=
+#==== ====    ====    =====     ======= ======== =========== ========= ===== ======== ========== ========                 
+INPUT FILE_IN file_in FILE      ""      ""       ""          ""        ""    TRUE     ""         "Input table (pipe)."
+INPUT TOP     top     NAME_REAL ""      4000     ""          CONSTANT  FEET  TRUE     ""         "Top Depth for Plots"
+INPUT BOTTOM  bottom  NAME_REAL ""      5000     ""          CONSTANT  FEET  TRUE     ""         "Bottom Depth for Plots"
+INPUT DEPTH   depth   NAME_REAL ""      ""       ""          LOG       FEET  TRUE     ""         "Downhole depth"

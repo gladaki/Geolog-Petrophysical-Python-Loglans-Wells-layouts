@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+# python loglan
+
+
+# Imports
+import geolog
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import math
+
+
+
+# Load data from geolog
+while geolog.getrow():
+
+    # =============================================================================
+    # # ===========================================================================
+    # # #--------------------------------------------------------------------------
+    # # #
+    # # #            Calculate Thomeer-based BVO Saturations
+    # # #
+    # # #--------------------------------------------------------------------------
+    # # ===========================================================================
+    # =============================================================================
+
+    h = fwl - depth
+    PcRes = h *0.433*(rho_f - rho_hc)
+    PcHg  = (367/tcosthetaww)*PcRes   
+
+
+
+    if PcHg > pd1:
+        BVOCC1 = bv1 * 10**(-0.434*g1/math.log10(((367/tcosthetaww)*h*0.433*(rho_f - rho_hc))/pd1))
+    else:
+        BVOCC1 = 0.001
+
+    if PcHg > pd2:
+        BVOCC2 = bv2 * 10**(-0.434*g2/math.log10(((367/tcosthetaww)*h*0.433*(rho_f - rho_hc))/pd2))
+    else:
+        BVOCC2 = 0.001
+
+
+
+    bvo = (BVOCC1  + BVOCC2)/100
+    sw = 1-bvo/((bv1+bv2)/100)
+
+  
+    # Store data into geolog
+    geolog.putrow()
+
+
+
+
+
+
+
+
+
+
+
